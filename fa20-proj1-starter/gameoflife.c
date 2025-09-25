@@ -86,28 +86,29 @@ uint8_t convertR(uint8_t colorR, char bit[], Color neighbour[], char binRule[])
 		// 如果c本轮是活细胞
 		if (c)
 		{
-			if (binRule[liveCount])
+			if (binRule[liveCount] == '1')
 			{
-				bit[7 - i] = 1;
+				bit[7 - i] = '1';
 			}
 			else
 			{
-				bit[7 - i] = 0;
+				bit[7 - i] = '0';
 			}
 		}
 		// 如果c本轮是死细胞
 		else
 		{
-			if (binRule[liveCount + (ruleLength / 2)])
+			if (binRule[liveCount + (ruleLength / 2)] == '1')
 			{
-				bit[7 - i] = 1;
+				bit[7 - i] = '1';
 			}
 			else
 			{
-				bit[7 - i] = 0;
+				bit[7 - i] = '0';
 			}
 		}
 	}
+	bit[8] = '\0';
 	return charToUint8(bit);
 }
 
@@ -131,28 +132,29 @@ uint8_t convertG(uint8_t colorG, char bit[], Color neighbour[], char binRule[])
 		// 如果c本轮是活细胞
 		if (c)
 		{
-			if (binRule[liveCount])
+			if (binRule[liveCount] == '1')
 			{
-				bit[7 - i] = 1;
+				bit[7 - i] = '1';
 			}
 			else
 			{
-				bit[7 - i] = 0;
+				bit[7 - i] = '0';
 			}
 		}
 		// 如果c本轮是死细胞
 		else
 		{
-			if (binRule[liveCount + (ruleLength / 2)])
+			if (binRule[liveCount + (ruleLength / 2)] == '1')
 			{
-				bit[7 - i] = 1;
+				bit[7 - i] = '1';
 			}
 			else
 			{
-				bit[7 - i] = 0;
+				bit[7 - i] = '0';
 			}
 		}
 	}
+	bit[8] = '\0';
 	return charToUint8(bit);
 }
 
@@ -176,59 +178,71 @@ uint8_t convertB(uint8_t colorB, char bit[], Color neighbour[], char binRule[])
 		// 如果c本轮是活细胞
 		if (c)
 		{
-			if (binRule[liveCount])
+			if (binRule[liveCount] == '1')
 			{
-				bit[7 - i] = 1;
+				bit[7 - i] = '1';
 			}
 			else
 			{
-				bit[7 - i] = 0;
+				bit[7 - i] = '0';
 			}
 		}
 		// 如果c本轮是死细胞
 		else
 		{
-			if (binRule[liveCount + (ruleLength / 2)])
+			if (binRule[liveCount + (ruleLength / 2)] == '1')
 			{
-				bit[7 - i] = 1;
+				bit[7 - i] = '1';
 			}
 			else
 			{
-				bit[7 - i] = 0;
+				bit[7 - i] = '0';
 			}
 		}
 	}
+	bit[8] = '\0';
 	return charToUint8(bit);
 }
 
 uint32_t charToUint32(const char bin[])
 {
 	long result = strtol(bin, NULL, 0);
+	printf("%ld\n", result);
 	return (uint32_t)result;
 }
 
 uint8_t charToUint8(char bin[])
 {
-	long result = strtol(bin, NULL, 0);
+	long result = strtol(bin, NULL, 2);
 	return (uint8_t)result;
 }
 
+// void ruleToBinary(uint32_t rule, char bin[])
+// {
+// 	int pos = 0;
+// 	int started = 0;
+// 	for (int i = 0; i < 31; i++)
+// 	{
+// 		char bit = rule & (1u << i);
+// 		if (!started && bit)
+// 		{
+// 			started = 1; // 去掉前导0
+// 		}
+// 		if (started)
+// 		{
+// 			bin[pos++] = bit ? '1' : '0';
+// 		}
+// 	}
+// 	bin[pos++] = '\0';
+// }
+
 void ruleToBinary(uint32_t rule, char bin[])
 {
-	int pos = 0;
-	int started = 0;
-	for (int i = 0; i < 31; i++)
+	for (int i = 31; i >= 0; i--)
 	{
-		char bit = rule & (1u << i);
-		if (!started && bit)
-		{
-			started = 1; // 去掉前导0
-		}
-		if (started)
-		{
-			bin[pos++] = bit ? 1 : 0;
-		}
+		bin[31 - i] = ((rule >> i) & 1) ? '1' : '0';
 	}
+	bin[32] = '\0'; // 字符串结束符
 }
 
 // The main body of Life; given an image and a rule, computes one iteration of the Game of Life.
@@ -283,6 +297,7 @@ int main(int argc, char **argv)
 	Image *nextImage;
 	image = readData(argv[1]);
 	uint32_t rule = charToUint32(argv[2]);
+	printf("%" PRIu32, rule);
 	nextImage = life(image, rule);
 	writeData(nextImage);
 	freeImage(image);
