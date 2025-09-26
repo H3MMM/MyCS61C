@@ -239,7 +239,7 @@ uint32_t charToUint32(const char bin[])
 }
 
 uint8_t charToUint8(char bin[])
-{
+{	
 	long result = strtol(bin, NULL, 2);
 	return (uint8_t)result;
 }
