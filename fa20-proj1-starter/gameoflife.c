@@ -40,7 +40,7 @@ Color *evaluateOneCell(Image *image, int row, int col, uint32_t rule)
 
 	// 把rule转为一个二进制char[]
 	// TODO:检查这个binary函数
-	ruleToBinary(rule, binRule);
+	ruleToBinary(rule, binRule);//现在binRule是32位
 
 	// 对单个元素开始解析
 	// 获取其对应颜色块
@@ -68,6 +68,7 @@ Color *evaluateOneCell(Image *image, int row, int col, uint32_t rule)
 
 uint8_t convertR(uint8_t colorR, char bit[], Color neighbour[], char binRule[])
 {
+	int binRuleStart = 32 - ruleLength;  //算出binrule数组第几位才是rule的真正起始位置（删掉前导0）
 	for (int i = 7; i >= 0; i--)
 	{
 		// 遍历颜色的8位
@@ -84,9 +85,9 @@ uint8_t convertR(uint8_t colorR, char bit[], Color neighbour[], char binRule[])
 			}
 		}
 		// 如果c本轮是活细胞
-		if (c)
+		if (c == 1)
 		{
-			if (binRule[liveCount] == '1')
+			if (binRule[binRuleStart + liveCount] == '1')
 			{
 				bit[7 - i] = '1';
 			}
@@ -98,7 +99,7 @@ uint8_t convertR(uint8_t colorR, char bit[], Color neighbour[], char binRule[])
 		// 如果c本轮是死细胞
 		else
 		{
-			if (binRule[liveCount + (ruleLength / 2)] == '1')
+			if (binRule[binRuleStart + liveCount + (ruleLength / 2)] == '1')
 			{
 				bit[7 - i] = '1';
 			}
@@ -114,11 +115,12 @@ uint8_t convertR(uint8_t colorR, char bit[], Color neighbour[], char binRule[])
 
 uint8_t convertG(uint8_t colorG, char bit[], Color neighbour[], char binRule[])
 {
+	int binRuleStart = 32 - ruleLength; // 算出binrule数组第几位才是rule的真正起始位置（删掉前导0）
 	for (int i = 7; i >= 0; i--)
 	{
 		// 遍历颜色的8位
 
-		// 用color << i & 1的方法获取第i位
+		// 用color >> i & 1的方法获取第i位
 		char c = (colorG >> i) & 1;
 		int liveCount = 0;
 		for (int j = 0; j < 8; j++)
@@ -130,9 +132,9 @@ uint8_t convertG(uint8_t colorG, char bit[], Color neighbour[], char binRule[])
 			}
 		}
 		// 如果c本轮是活细胞
-		if (c)
+		if (c == 1)
 		{
-			if (binRule[liveCount] == '1')
+			if (binRule[binRuleStart + liveCount] == '1')
 			{
 				bit[7 - i] = '1';
 			}
@@ -144,7 +146,7 @@ uint8_t convertG(uint8_t colorG, char bit[], Color neighbour[], char binRule[])
 		// 如果c本轮是死细胞
 		else
 		{
-			if (binRule[liveCount + (ruleLength / 2)] == '1')
+			if (binRule[binRuleStart + liveCount + (ruleLength / 2)] == '1')
 			{
 				bit[7 - i] = '1';
 			}
@@ -160,11 +162,12 @@ uint8_t convertG(uint8_t colorG, char bit[], Color neighbour[], char binRule[])
 
 uint8_t convertB(uint8_t colorB, char bit[], Color neighbour[], char binRule[])
 {
+	int binRuleStart = 32 - ruleLength; // 算出binrule数组第几位才是rule的真正起始位置（删掉前导0）
 	for (int i = 7; i >= 0; i--)
 	{
 		// 遍历颜色的8位
 
-		// 用color << i & 1的方法获取第i位
+		// 用color >> i & 1的方法获取第i位
 		char c = (colorB >> i) & 1;
 		int liveCount = 0;
 		for (int j = 0; j < 8; j++)
@@ -176,9 +179,9 @@ uint8_t convertB(uint8_t colorB, char bit[], Color neighbour[], char binRule[])
 			}
 		}
 		// 如果c本轮是活细胞
-		if (c)
+		if (c == 1)
 		{
-			if (binRule[liveCount] == '1')
+			if (binRule[binRuleStart + liveCount] == '1')
 			{
 				bit[7 - i] = '1';
 			}
@@ -190,7 +193,7 @@ uint8_t convertB(uint8_t colorB, char bit[], Color neighbour[], char binRule[])
 		// 如果c本轮是死细胞
 		else
 		{
-			if (binRule[liveCount + (ruleLength / 2)] == '1')
+			if (binRule[binRuleStart + liveCount + (ruleLength / 2)] == '1')
 			{
 				bit[7 - i] = '1';
 			}
@@ -204,11 +207,35 @@ uint8_t convertB(uint8_t colorB, char bit[], Color neighbour[], char binRule[])
 	return charToUint8(bit);
 }
 
+// uint32_t charToUint32(const char bin[])
+// {
+// 	long result = strtol(bin, NULL, 0);
+// 	return (uint32_t)result;
+// }
+
 uint32_t charToUint32(const char bin[])
 {
-	long result = strtol(bin, NULL, 0);
-	printf("%ld\n", result);
-	return (uint32_t)result;
+	// 如果是0x开头，就按16进制解析
+	if (bin[0] == '0' && (bin[1] == 'x' || bin[1] == 'X'))
+	{
+		return (uint32_t)strtol(bin, NULL, 16);
+	}
+	// 如果只包含'0'和'1'，就按二进制解析
+	int isBinary = 1;
+	for (int i = 0; bin[i] != '\0'; i++)
+	{
+		if (bin[i] != '0' && bin[i] != '1')
+		{
+			isBinary = 0;
+			break;
+		}
+	}
+	if (isBinary)
+	{
+		return (uint32_t)strtol(bin, NULL, 2);
+	}
+	// 否则就按十进制解析
+	return (uint32_t)strtol(bin, NULL, 10);
 }
 
 uint8_t charToUint8(char bin[])
@@ -243,6 +270,7 @@ void ruleToBinary(uint32_t rule, char bin[])
 		bin[31 - i] = ((rule >> i) & 1) ? '1' : '0';
 	}
 	bin[32] = '\0'; // 字符串结束符
+	
 }
 
 // The main body of Life; given an image and a rule, computes one iteration of the Game of Life.
@@ -297,7 +325,6 @@ int main(int argc, char **argv)
 	Image *nextImage;
 	image = readData(argv[1]);
 	uint32_t rule = charToUint32(argv[2]);
-	printf("%" PRIu32, rule);
 	nextImage = life(image, rule);
 	writeData(nextImage);
 	freeImage(image);
