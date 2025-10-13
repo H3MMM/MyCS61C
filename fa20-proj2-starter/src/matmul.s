@@ -34,19 +34,8 @@ matmul:
     bne a2, a4, matchError
 
     # Prologue
-    addi sp, sp, -40
+    addi sp, sp, -44
 
-
-    mv s1, a0
-    mv s2, a1
-    mv s3, a2
-    mv s4, a3
-    mv s5, a4
-    mv s6, a5
-    mv s7, a6
-    mv s8, x0 #outCount
-    mv s9, x0 #innerCount
-    
     sw ra, 0(sp)
     sw s1, 4(sp) #start of m0
     sw s2, 8(sp) #rows of m0
@@ -57,40 +46,44 @@ matmul:
     sw s7, 28(sp) #point to d
     sw s8, 32(sp) #point to d
     sw s9, 36(sp) #point to d
+    sw s10, 40(sp) #curIndex of array2
+
+    mv s1, a0
+    mv s2, a1
+    mv s3, a2
+    mv s4, a3
+    mv s5, a4
+    mv s6, a5
+    mv s7, a6
+    mv s8, x0 #outCount
 
 outer_loop_start:
-    beq s8, a1, outer_loop_end
+    beq s8, s2, outer_loop_end
+    mv s10, s4
+    mv s9, x0
 
 inner_loop_start:
     beq s9, s6, inner_loop_end
     mv a0, s1
-    mv a1, s4
+    mv a1, s10
     mv a2, s3
     li a3, 1
     mv a4, s6
     jal dot
     sw a0, 0(s7)
-    lw ra, 0(sp)
-    lw s1, 4(sp) #start of m0
-    lw s2, 8(sp) #rows of m0
-    lw s3, 12(sp) #cols of m0
-    lw s4, 16(sp) #start of m1
-    lw s5, 20(sp) #rows of m1
-    lw s6, 24(sp) #cols of m5
-    lw s7, 28(sp) #point to d
-    lw s8, 32(sp) #point to d
-    lw s9, 36(sp) #point to d
-    addi s4, s4, 4 #col + 1
+    addi s10, s10, 4 #col + 1
     addi s7, s7, 4 #d[count++]
     addi s9, s9, 1 #j++
     j inner_loop_start
 
 inner_loop_end:
     addi s8, s8, 1
+    mv t0, s3
+    slli t0, t0, 2
+    add s1, s1, t0
     j outer_loop_start
 
 outer_loop_end:
-    addi sp, sp, 40
     lw ra, 0(sp)
     lw s1, 4(sp) #start of m0
     lw s2, 8(sp) #rows of m0
@@ -101,6 +94,8 @@ outer_loop_end:
     lw s7, 28(sp) #point to d
     lw s8, 32(sp) #point to d
     lw s9, 36(sp) #point to d
+    lw s10, 40(sp)
+    addi sp, sp, 44
     # Epilogue
     
     
