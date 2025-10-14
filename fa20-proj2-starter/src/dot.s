@@ -55,8 +55,8 @@ loop_end:
 
 lengthError:
     addi a0, x0, 75
-    ecall
+    jal exit2
 
 strideError:
     addi a0, x0, 76
-    ecall
+    jal exit2

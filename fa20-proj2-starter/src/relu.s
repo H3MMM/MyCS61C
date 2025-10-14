@@ -49,4 +49,4 @@ change:
 
 lengthError:
     li a0, 78
-    ecall
+    jal exit2

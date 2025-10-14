@@ -44,7 +44,7 @@ loop_end:
 
 lengthError:
     li a0, 77
-    ecall
+    jal exit2
 
 change:
     mv t2, a0

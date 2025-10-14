@@ -103,13 +103,13 @@ outer_loop_end:
 
 m0DimensionsError:
     li a0, 72
-    ecall
+    jal exit2
     
 
 m1DimensionsError:
     li a0, 73
-    ecall
+    jal exit2
 
 matchError:
     li a0, 74
-    ecall
+    jal exit2
