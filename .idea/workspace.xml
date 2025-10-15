@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="af9889cd-43b5-4f70-aed9-c4fd1fa119be" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/fa20-proj2-starter/src/matmul.s" beforeDir="false" afterPath="$PROJECT_DIR$/fa20-proj2-starter/src/matmul.s" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fa20-proj2-starter/outputs/test_write_matrix/reference.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/fa20-proj2-starter/src/write_matrix.s" beforeDir="false" afterPath="$PROJECT_DIR$/fa20-proj2-starter/src/write_matrix.s" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/fa20-proj2-starter/unittests/unittests.py" beforeDir="false" afterPath="$PROJECT_DIR$/fa20-proj2-starter/unittests/unittests.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -13,9 +14,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 7
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="340fXTEyapbZOyaKfnOwaWeu0Di" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -26,7 +27,7 @@
     "Python 测试.unittests.TestMatmul 的 Python 测试.executor": "Debug",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
-    "last_opened_file_path": "D:/CS61C/MyCS61C",
+    "last_opened_file_path": "D:/数据挖掘",
     "settings.editor.selected.configurable": "preferences.lookFeel"
   }
 }]]></component>

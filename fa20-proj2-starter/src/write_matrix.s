@@ -24,11 +24,8 @@
 # ==============================================================================
 write_matrix:
      # Prologue
-    addi sp, sp, -32
-    sw ra, 28(sp)
-    sw s7, 24(sp)
-    sw s6, 20(sp)
-    sw s5, 16(sp)
+    addi sp, sp, -20
+    sw ra, 16(sp)
     sw s4, 12(sp) #point to malloced matrix
     sw s3, 8(sp)
     sw s2, 4(sp)
@@ -43,21 +40,79 @@ write_matrix:
 
     #fopen
     mv a1, a0  
-    li a2, 0
+    li a2, 1
     jal fopen
     # now a0 is unique integer tied to the file
     addi t0, x0, -1
     beq a0, t0, fopenError
+    mv s1, a0  #unique integer tied to the file
+
+    #write the row to file
+    addi sp, sp, -4
+    sw s3, 0(sp)
+    mv a1, s1
+    mv a2, sp
+    li a3, 1
+    li a4, 4
+    jal fwrite
+    # fwrite error
+    li t0, 1
+    bne a0, t0, fwriteError
 
 
+    #write the col to file
+    addi sp, sp, -4
+    sw s4, 0(sp)
+    mv a1, s1
+    mv a2, sp
+    li a3, 1
+    li a4, 4
+    jal fwrite
+    # fwrite error
+    li t0, 1
+    bne a0, t0, fwriteError
+    #recover sp
+    addi  sp, sp, 8
+    
 
+    #write matrix to file
+    mv a1, s1
+    mv a2, s2
+    mul t0, s3, s4
+    mv a3, t0  # (M * N) items
+    li a4, 4  # 4 bytes
+    jal fwrite
 
+    # fwrite error
+    mul t0, s3, s4
+    bne a0, t0, fwriteError
+    
 
-
+    #fclose
+    mv  a1, s1
+    jal fclose
+    bne a0, x0, fcloseError
 
 
 
     # Epilogue
-
+    lw s1, 0(sp)
+    lw s2, 4(sp)
+    lw s3, 8(sp)
+    lw s4, 12(sp)
+    lw ra, 16(sp)
+    addi sp, sp, 20
 
     ret
+
+fopenError:
+    li a0, 93
+    jal exit2
+
+fwriteError:
+    li a0, 94
+    jal exit2
+
+fcloseError:
+    li a0, 95
+    jal exit2
