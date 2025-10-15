@@ -255,6 +255,7 @@ print_hex:
 #   a0 is the # of bytes to allocate heap memory for
 # return:
 #   a0 is the pointer to the allocated heap memory
+#   when malloc fail return a0 = -1
 #================================================================
 malloc:
     # Call to sbrk
