@@ -26,7 +26,7 @@ write_matrix:
      # Prologue
     addi sp, sp, -20
     sw ra, 16(sp)
-    sw s4, 12(sp) #point to malloced matrix
+    sw s4, 12(sp) 
     sw s3, 8(sp)
     sw s2, 4(sp)
     sw s1, 0(sp) 
