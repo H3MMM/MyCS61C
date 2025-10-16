@@ -22,7 +22,7 @@ classify:
     #   main.s <M0_PATH> <M1_PATH> <INPUT_PATH> <OUTPUT_PATH>
 
     # Prologue
-    li t0, 4
+    li t0, 5
     bne a0, t0, commandError
     #save data
     addi sp, sp, -44
@@ -38,10 +38,10 @@ classify:
     sw s9, 4(sp)  #pointer the result of m0 * input
     sw s10, 0(sp) #pointer the result of m1 * ReLU(m0 * input)
 
-    lw s1, 0(a1) # M0_Path
-    lw s2, 4(a1) # M1_Path
-    lw s3, 8(a1) # Input_Path
-    lw s4, 12(a1) # Output_Path
+    lw s1, 4(a1) # M0_Path
+    lw s2, 8(a1) # M1_Path
+    lw s3, 12(a1) # Input_Path
+    lw s4, 16(a1) # Output_Path
     mv s5, a2 # print status  if s5 == 0,print, else print nothing 
 
 
@@ -52,44 +52,50 @@ classify:
     # Load pretrained m0
 
     addi sp, sp, -8
-    mv a0, s1
-    mv a2, t1  # t1 is the pointer to set it to the num of cols
-    mv a1, t0  # t0 is the pointer to set it to the num of rows
-    jal read_matrix
     sw t0, 4(sp)
     sw t1, 0(sp)
+    mv t3, sp
+    mv a0, s1
+    mv a2, t3  # t1 is the pointer to set it to the num of cols
+    addi t3, sp, 4
+    mv a1, t3  # t0 is the pointer to set it to the num of rows
+    jal read_matrix
     mv s6, a0  #  pointer to M0
 
 
     # Load pretrained m1
     addi sp, sp, -8
-    mv a0, s2
-    mv a2, t1  # t1 is the pointer to set it to the num of cols
-    mv a1, t0  # t0 is the pointer to set it to the num of rows
-    jal read_matrix
     sw t0, 4(sp)
     sw t1, 0(sp)
+    mv t3, sp
+    mv a0, s2
+    mv a2, t3  # t1 is the pointer to set it to the num of cols
+    addi t3, sp, 4
+    mv a1, t3  # t0 is the pointer to set it to the num of rows
+    jal read_matrix
     mv s7, a0  #  pointer to M1
 
 
     # Load input matrix
     addi sp, sp, -8
-    mv a0, s3
-    mv a2, t1  # t1 is the pointer to set it to the num of cols
-    mv a1, t0  # t0 is the pointer to set it to the num of rows
-    jal read_matrix
     sw t0, 4(sp)
     sw t1, 0(sp)
+    mv t3, sp
+    mv a0, s3
+    mv a2, t3  # t1 is the pointer to set it to the num of cols
+    addi t3, sp, 4
+    mv a1, t3  # t0 is the pointer to set it to the num of rows
+    jal read_matrix
     mv s8, a0  #  pointer to Input
 
   
     # now:
-    # 0(sp) input_rows
-    # 4(sp) input_cols
-    # 8(sp) m1_rows
-    # 12(sp) m1_cols
-    # 16(sp) m0_rows
-    # 20(sp) m0_cols
+    # 0(sp) input_cols
+    # 4(sp) input_rows
+    # 8(sp) m1_cols
+    # 12(sp) m1_rows
+    # 16(sp) m0_cols
+    # 20(sp) m0_rows
 
 
 
@@ -101,8 +107,8 @@ classify:
     # 3. LINEAR LAYER:    m1 * ReLU(m0 * input)
 runLayers:
     #malloc for m0 * input
-    lw t0, 16(sp) # m0_row
-    lw t2, 4(sp)  #input_col
+    lw t0, 20(sp) # m0_row
+    lw t2, 0(sp)  #input_col
     mul a0, t0, t2
     li t3, 4
     mul a0, a0, t3
@@ -111,24 +117,24 @@ runLayers:
     
     #start matmul(m0, input)
     mv a0, s6
-    lw a1, 16(sp) # m0_row
-    lw a2, 20(sp) # m0_col
+    lw a1, 20(sp) # m0_row
+    lw a2, 16(sp) # m0_col
     mv a3, s8
-    lw a4, 0(sp)  #input_row
-    lw a5, 4(sp)  #input_col
+    lw a4, 4(sp)  #input_row
+    lw a5, 0(sp)  #input_col
     mv a6, s9
     jal matmul
 
     # ReLU(m0 * input)
     mv a0, s9
-    lw t0, 16(sp) # m0_row
-    lw t2, 4(sp)  #input_col
+    lw t0, 20(sp) # m0_row
+    lw t2, 0(sp)  #input_col
     mul a1, t0, t2
     jal relu
 
     #malloc for m1 * ReLU(m0 * input)
-    lw t0, 8(sp) # m1_row
-    lw t2, 4(sp)  #input_col
+    lw t0, 12(sp) # m1_row
+    lw t2, 0(sp)  #input_col
     mul a0, t0, t2
     li t3, 4
     mul a0, a0, t3
@@ -137,11 +143,11 @@ runLayers:
 
     #start matmul(m1 , ReLU(m0 * input))
     mv a0, s7
-    lw a1, 8(sp) #m1_row
-    lw a2, 12(sp) #m1_col
+    lw a1, 12(sp) #m1_row
+    lw a2, 8(sp) #m1_col
     mv a3, s9
-    lw a4, 16(sp) #m0_row
-    lw a5, 4(sp)  #input_col
+    lw a4, 20(sp) #m0_row
+    lw a5, 0(sp)  #input_col
     mv a6, s10
     jal matmul 
 
@@ -151,8 +157,8 @@ runLayers:
     # Write output matrix
     mv a0, s4
     mv a1, s10
-    lw a2, 8(sp) # result.row = m1_row 
-    lw a3, 4(sp) # result.col = input_col
+    lw a2, 12(sp) # result.row = m1_row 
+    lw a3, 0(sp) # result.col = input_col
     jal write_matrix
 
 
@@ -161,8 +167,8 @@ runLayers:
     # =====================================
     # Call argmax
     mv a0, s10
-    lw t0, 8(sp) # result.row = m1_row 
-    lw t1, 4(sp) # result.col = input_col
+    lw t0, 12(sp) # result.row = m1_row 
+    lw t1, 0(sp) # result.col = input_col
     mul a1, t0, t1
     jal argmax
     
@@ -171,17 +177,16 @@ runLayers:
     
 
     # Print classification
-    bne  s5, x0, printNewLine
+    bne  s5, x0, end
 printClassification:
+    mv a1, a0
     jal print_int
 
 
 
     # Print newline afterwards for clarity
-printNewLine:
-    li a0, 10           # ASCII 10 is '\n'
-    jal print_char
 
+end:
     # free malloced
     mv a0, s9
     jal free
