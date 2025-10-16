@@ -13,7 +13,8 @@
 #   this function terminates the program with error code 78.
 # ==============================================================================
 relu:
-    ble a1, 1, lengthError
+    li t0, 1
+    ble a1, t0, lengthError
     # Prologue
     addi sp, sp, -12
     sw s0, 8(sp)

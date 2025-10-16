@@ -42,7 +42,7 @@ classify:
     lw s2, 4(a1) # M1_Path
     lw s3, 8(a1) # Input_Path
     lw s4, 12(a1) # Output_Path
-    lw s5, a2 # print status  if s5 == 0,print, else print nothing 
+    mv s5, a2 # print status  if s5 == 0,print, else print nothing 
 
 
 	# =====================================
@@ -104,7 +104,8 @@ runLayers:
     lw t0, 16(sp) # m0_row
     lw t2, 4(sp)  #input_col
     mul a0, t0, t2
-    mul a0, a0, 4
+    li t3, 4
+    mul a0, a0, t3
     jal malloc
     mv s9, a0  #now s9 is malloced for m0 * input
     
@@ -129,7 +130,8 @@ runLayers:
     lw t0, 8(sp) # m1_row
     lw t2, 4(sp)  #input_col
     mul a0, t0, t2
-    mul a0, a0, 4
+    li t3, 4
+    mul a0, a0, t3
     jal malloc
     mv s10, a0  #now s10 is malloced for m1 * ReLU(m0 * input)
 
@@ -164,8 +166,9 @@ runLayers:
     mul a1, t0, t1
     jal argmax
     
-    # now a0 is the result after classfication
-
+    mv s1, a0
+    # now s1 and a0 is the result after classfication
+    
 
     # Print classification
     bne  s5, x0, printNewLine
@@ -179,6 +182,11 @@ printNewLine:
     li a0, 10           # ASCII 10 is '\n'
     jal print_char
 
+    # free malloced
+    mv a0, s9
+    jal free
+    mv a0, s10
+    jal free
 
     #Epilogue
     lw s10, 24(sp)
@@ -194,7 +202,7 @@ printNewLine:
     lw ra, 64(sp)
     addi sp, sp, 68
 
-
+    mv a0, s1
     ret
 
 
