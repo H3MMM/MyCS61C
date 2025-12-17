@@ -567,7 +567,7 @@ end TCL_Generic;
     </comp>
     <comp lib="12" loc="(2070,550)" name="alu"/>
     <comp lib="13" loc="(1700,460)" name="regfile"/>
-    <comp lib="14" loc="(540,1010)" name="control_logic"/>
+    <comp lib="14" loc="(560,810)" name="control_logic"/>
     <comp lib="15" loc="(940,850)" name="branch_comp"/>
     <comp lib="16" loc="(1270,570)" name="imm_gen"/>
     <comp lib="17" loc="(1310,850)" name="csr"/>
