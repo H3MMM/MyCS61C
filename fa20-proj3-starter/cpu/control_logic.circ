@@ -550,10 +550,10 @@ end TCL_Generic;
       <a name="label" val="BSel"/>
     </comp>
     <comp lib="0" loc="(2270,1750)" name="Constant">
+      <a name="value" val="0x0"/>
       <a name="width" val="2"/>
     </comp>
     <comp lib="0" loc="(2270,1770)" name="Constant">
-      <a name="value" val="0x0"/>
       <a name="width" val="2"/>
     </comp>
     <comp lib="0" loc="(2300,1820)" name="Tunnel">
