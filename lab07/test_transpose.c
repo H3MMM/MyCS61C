@@ -47,8 +47,8 @@ int main( int argc, char **argv ) {
     int blocksize = atoi(argv[2]);
 
     /* allocate an n*n block of integers for the matrices */
-    int *A = (int*)malloc( n*n*sizeof(int) );
-    int *B = (int*)malloc( n*n*sizeof(int) );
+    int *A = (int*) malloc( n*n*sizeof(int) );
+    int *B = (int*) malloc( n*n*sizeof(int) );
 
     /* run tests */
     benchmark(A, B, n, blocksize, transpose_naive, "naive transpose");
