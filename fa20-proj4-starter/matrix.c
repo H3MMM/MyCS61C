@@ -58,7 +58,35 @@ void rand_matrix(matrix *result, unsigned int seed, double low, double high) {
  * Return 0 upon success and non-zero upon failure.
  */
 int allocate_matrix(matrix **mat, int rows, int cols) {
-    /* TODO: YOUR CODE HERE */
+    // TODO: YOUR CODE HERE
+    
+    //错误申请
+    if(rows < 1 || cols < 1) {
+        PyErr_SetString(PyExc_ValueError, "Incorrect values for rows or cols");
+        return -1;
+    }
+    //申请结构体
+    *mat = (matrix*)malloc(sizeof(matrix));
+    if(!mat) {
+        PyErr_SetString(PyExc_RuntimeError, "malloc matrix failed!");
+        return -1;
+    }
+    //实例化
+    (*mat)->cols = cols;
+    (*mat)->rows = rows;
+    (*mat)->parent = NULL;
+    (*mat)->ref_cnt = 1;
+    (*mat)->is_1d = (cols == 1 || rows == 1) ? 1 : 0;
+    //申请内存
+    (*mat)->data = (double**) malloc(sizeof(double*) * rows);
+    if (!(*mat) ->data) {
+        PyErr_SetString(PyExc_RuntimeError, "malloc data failed!");
+        return -1;
+    }
+    for(int i = 0; i < rows;i++){
+        (*mat)->data[i] = (double*)calloc(cols, sizeof(double));
+    }
+    return 0;
 }
 
 /*
@@ -70,7 +98,43 @@ int allocate_matrix(matrix **mat, int rows, int cols) {
  */
 int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offset,
                         int rows, int cols) {
-    /* TODO: YOUR CODE HERE */
+    // TODO: YOUR CODE HERE
+    // 错误申请
+    if (rows < 1 || cols < 1 || row_offset < 0 || col_offset < 0 || 
+        row_offset + rows > from->rows || col_offset + cols > from -> cols)
+    {
+        PyErr_SetString(PyExc_ValueError, "Incorrect values for rows or cols");
+        return -1;
+    }
+    // 申请结构体
+    *mat = (matrix *)malloc(sizeof(matrix));
+    if (!mat)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "malloc matrix failed!");
+        return -1;
+    }
+    // 实例化
+    (*mat)->cols = cols;
+    (*mat)->rows = rows;
+    (*mat)->parent = from;
+    (*mat)->is_1d = (cols == 1 || rows == 1) ? 1 : 0;
+    (*mat)->ref_cnt = 1;
+   
+    // 申请内存
+    (*mat)->data = (double **)malloc(sizeof(double *) * rows);
+    if (!(*mat)->data)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "malloc data failed!");
+        return -1;
+    }
+
+    for (int i = 0; i < rows; i++)
+    {
+        (*mat)->data[i] = from -> data[i + row_offset] + col_offset;
+    }
+   
+    from -> ref_cnt++;
+    return 0;
 }
 
 /*
@@ -82,6 +146,24 @@ int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offs
  */
 void deallocate_matrix(matrix *mat) {
     /* TODO: YOUR CODE HERE */
+    if(mat == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "This matrix is NULL!!!");
+        return;
+    }
+    if(mat->parent != NULL) {
+        mat->parent->ref_cnt--;
+        free(mat->data);
+    }
+    else {
+        mat->ref_cnt--; //第一件事是先更新ref_cnt
+        if((*mat).ref_cnt == 0) {
+            for (int i = 0; i < (*mat).rows; i++)
+            {
+                free((*mat).data[i]);
+            }
+            free((*mat).data);
+        }
+    }
 }
 
 /*
@@ -90,6 +172,7 @@ void deallocate_matrix(matrix *mat) {
  */
 double get(matrix *mat, int row, int col) {
     /* TODO: YOUR CODE HERE */
+    return mat->data[row][col];
 }
 
 /*
@@ -98,6 +181,7 @@ double get(matrix *mat, int row, int col) {
  */
 void set(matrix *mat, int row, int col, double val) {
     /* TODO: YOUR CODE HERE */
+    mat -> data[row][col] = val;
 }
 
 /*
@@ -105,6 +189,13 @@ void set(matrix *mat, int row, int col, double val) {
  */
 void fill_matrix(matrix *mat, double val) {
     /* TODO: YOUR CODE HERE */
+    int rows = (*mat).rows;
+    int cols = (*mat).cols;
+    for(int i = 0; i< rows;i++){
+        for(int j = 0; j < cols;j++) {
+            mat -> data[i][j] = val;
+        }
+    }
 }
 
 /*
@@ -113,6 +204,18 @@ void fill_matrix(matrix *mat, double val) {
  */
 int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     /* TODO: YOUR CODE HERE */
+    if(mat1->rows != mat2->rows || mat1->cols != mat2->cols) {
+        PyErr_SetString(PyExc_ValueError, "Incorrect values for rows or cols");
+        return -1;
+    } 
+    int rows = (*mat1).rows;
+    int cols = (*mat1).cols;
+    for(int i = 0;i < rows;i++){
+        for(int j = 0; j < cols;j++) {
+            result->data[i][j] = mat1->data[i][j] + mat2->data[i][j];
+        }
+    }
+    return 0;
 }
 
 /*
@@ -121,6 +224,20 @@ int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  */
 int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     /* TODO: YOUR CODE HERE */
+    if (mat1->rows != mat2->rows || mat1->cols != mat2->cols)
+    {
+        PyErr_SetString(PyExc_ValueError, "Incorrect values for rows or cols");
+        return -1;
+    }
+    int rows = (*mat1).rows;
+    int cols = (*mat1).cols;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++)
+        {
+            result->data[i][j] = mat1->data[i][j] - mat2->data[i][j];
+        }
+    }
+    return 0;
 }
 
 /*
@@ -130,6 +247,22 @@ int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  */
 int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     /* TODO: YOUR CODE HERE */
+    if(mat1->cols != mat2->rows) {
+        PyErr_SetString(PyExc_ValueError, "Incorrect values for rows or cols");
+        return -1;
+    }
+    int rows = (*mat1).rows;
+    int cols = (*mat2).cols;
+    int n = (*mat1).cols;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            for(int k = 0; k < n; k++) {
+                result->data[i][j] += mat1->data[i][k] * mat2->data[k][j];
+            }
+        }
+    }
+    return 0;
+    
 }
 
 /*
@@ -139,6 +272,36 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  */
 int pow_matrix(matrix *result, matrix *mat, int pow) {
     /* TODO: YOUR CODE HERE */
+    if(mat->rows != mat->cols) {
+        PyErr_SetString(PyExc_ValueError, "Incorrect values for rows or cols");
+        return -1;
+    }
+    int n = (*mat).rows;
+    for(int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            // result->data[i][i] = 1;   这里不能只把对角线元素置1，其他的没有清零
+            result->data[i][j] = (i == j) ? 1 : 0;
+        }
+    }
+    matrix* tmp;
+    allocate_matrix(&tmp, n,n);
+    for(int s = 0; s < pow; s++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                tmp->data[i][j] = 0;
+                for (int k = 0; k < n; k++){
+                    tmp->data[i][j] += result->data[i][k] * mat->data[k][j];
+                }
+            }
+        }
+        for(int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                result->data[i][j] = tmp->data[i][j];
+            }
+        }
+    }
+    deallocate_matrix(tmp);
+    return 0;
 }
 
 /*
@@ -147,6 +310,15 @@ int pow_matrix(matrix *result, matrix *mat, int pow) {
  */
 int neg_matrix(matrix *result, matrix *mat) {
     /* TODO: YOUR CODE HERE */
+    int rows = (*mat).rows;
+    int cols = (*mat).cols;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++)
+        {
+            (*result).data[i][j] = -mat->data[i][j];
+        }
+    }
+    return 0;
 }
 
 /*
@@ -155,5 +327,19 @@ int neg_matrix(matrix *result, matrix *mat) {
  */
 int abs_matrix(matrix *result, matrix *mat) {
     /* TODO: YOUR CODE HERE */
+    int rows = (*mat).rows;
+    int cols = (*mat).cols;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++)
+        {
+            if(mat->data[i][j] >= 0) {
+                (*result).data[i][j] = mat->data[i][j];
+            }
+            else {
+                (*result).data[i][j] = -mat->data[i][j];
+            }
+        }
+    }
+    return 0;
 }
 

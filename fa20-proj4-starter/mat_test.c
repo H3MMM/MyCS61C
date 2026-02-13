@@ -131,10 +131,7 @@ void abs_test(void) {
 void pow_test(void) {
     matrix *result = NULL;
     matrix *mat = NULL;
-    CU_ASSERT_EQUAL(allocate_matrix(&result, 2, 2
-
-                                   ),
-                    0);
+    CU_ASSERT_EQUAL(allocate_matrix(&result, 2, 2),0);
     CU_ASSERT_EQUAL(allocate_matrix(&mat, 2, 2), 0);
     set(mat, 0, 0, 1);
     set(mat, 0, 1, 1);
