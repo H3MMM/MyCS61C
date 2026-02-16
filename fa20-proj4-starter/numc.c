@@ -499,47 +499,17 @@ PyNumberMethods Matrix61c_as_number = {
  */
 PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
-    PyObject* list;
-    // 把args提取为Python列表，大写O表示任意 Python 对象
-    if(!PyArg_ParseTuple(args, "O", &list)) {
+   int row, col;
+   double val;
+   if (!PyArg_ParseTuple(args, "iid", &row, &col, &val) {
         return NULL;
-    }
-
-    //如果列表长度不为3，抛出TypeError
-    if(PyList_Size(list) != 3) {
-        PyErr_SetString(PyExc_TypeError, "the numbers of arguments must be 3!");
-    }
-
-    PyObject* pyRow = PyList_GetItem(list, 0);
-    PyObject* pyCol = PyList_GetItem(list, 1);
-    PyObject* pyVal = PyList_GetItem(list, 2);
-
-    //如果row和col不为整数，抛出TypeError
-    if (!PyLong_Check(pyRow) || !PyLong_Check(pyCol)) {
-        PyErr_SetString(PyExc_TypeError, "rows and cols must be int!");
-    }
-    int row = (int)PyLong_AsLong(pyRow);
-    int col = (int)PyLong_AsLong(pyCol);
-    if(row >= self->mat->rows || col >= self->mat->cols) {
-        PyErr_SetString(PyExc_IndexError, "i or j or both are out of range");
-    }
-
-    double val;
-    if (PyLong_Check(pyVal)) {
-        //如果val为int
-        val = (double)PyLong_AsLong(pyVal)
-    }
-    else if (PyFloat_Check(pyVal)) {
-        // 如果val为float
-        val = PyFloat_AsDouble(pyVal);
-    } else {
-        // 如果val不为int或float，抛出TypeError
-        PyErr_SetString(PyExc_TypeError, "val must be int or float!");
-    }
-    
-
-    matrix *result = self->mat;
-    set(result, row, col, val);
+   }  //把args解包成row，col和val
+   if(row < 0 || row >= self->mat->rows ||
+      col < 0 || col >= self->mat->cols) {
+        PyErr_SetString(PyExc_IndexError, "Index out of range");
+        return NULL;
+      }
+    set(self->mat, row, col, val);
     Py_RETURN_NONE;
 }
 
@@ -550,7 +520,17 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
  */
 PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
-   
+    int row, col;
+    if (!PyArg_ParseTuple(args, "ii", &row, &col) {
+            return NULL;
+    }  //把args解包成row，col和val
+    if(row < 0 || row >= self->mat->rows ||
+        col < 0 || col >= self->mat->cols) {
+            PyErr_SetString(PyExc_IndexError, "Index out of range");
+            return NULL;
+        }
+    get(self->mat, row, col);
+    Py_RETURN_NONE;
 }
 
 /*
