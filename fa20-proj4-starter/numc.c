@@ -222,6 +222,7 @@ int Matrix61c_init(PyObject *self, PyObject *args, PyObject *kwds) {
 /*
  * List of lists representations for matrices
  */
+// 把传进来的Matrix61C* self转换成Python的list
 PyObject *Matrix61c_to_list(Matrix61c *self) {
     int rows = self->mat->rows;
     int cols = self->mat->cols;
@@ -248,6 +249,7 @@ PyObject *Matrix61c_to_list(Matrix61c *self) {
     return py_lst;
 }
 
+// 把传进来的arg解包成Matrix61C* self，再转换成Python的list
 PyObject *Matrix61c_class_to_list(Matrix61c *self, PyObject *args) {
     PyObject *mat = NULL;
     if (PyArg_UnpackTuple(args, "args", 1, 1, &mat)) {
@@ -287,6 +289,36 @@ PyObject *Matrix61c_repr(PyObject *self) {
  */
 PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
+    //检查第二个矩阵是否为Matrix61c类型，不是的话抛出TypeError
+    if(!PyObject_IsInstance(args, (PyObject*) & Matrix61cType)) {
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+        return NULL;
+    }
+    //通过类型检查，直接强转
+    Matrix61c* other = (Matrix61c*) args;
+    //如果维度不对，抛出ValueError
+    if(other->mat->rows != self->mat->rows ||
+        other -> mat -> cols != self->mat->cols) {
+            PyErr_SetString(PyExc_ValueError, "A and B don't have same dimensions");
+            return NULL;
+        }
+    int rows = self->mat->rows;
+    int cols = self->mat->cols;
+    matrix* result = NULL;
+    
+    //申请内存失败就抛出错误
+    int allocFailed = allocate_matrix(&result, rows, cols);
+    if(allocFailed) {
+        PyErr_SetString(PyExc_RuntimeError, "Allocate Failed!");
+        return NULL;
+    }
+    
+    add_matrix(result, self->mat, other->mat);
+    //把result转化为Matrix61c对象返回
+    Matrix61c * rv = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
+    rv->mat = result;
+    rv->shape = get_shape(rows, cols);
+    return (PyObject*)rv;
 }
 
 /*
@@ -295,6 +327,39 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
  */
 PyObject *Matrix61c_sub(Matrix61c* self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
+    // 检查第二个矩阵是否为Matrix61c类型，不是的话抛出TypeError
+    if (!PyObject_IsInstance(args, (PyObject *)&Matrix61cType))
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+        return NULL;
+    }
+    // 通过类型检查，直接强转
+    Matrix61c *other = (Matrix61c *)args;
+    // 如果维度不对，抛出ValueError
+    if (other->mat->rows != self->mat->rows ||
+        other->mat->cols != self->mat->cols)
+    {
+        PyErr_SetString(PyExc_ValueError, "A and B don't have same dimensions");
+        return NULL;
+    }
+    int rows = self->mat->rows;
+    int cols = self->mat->cols;
+    matrix *result = NULL;
+
+    // 申请内存失败就抛出错误
+    int allocFailed = allocate_matrix(&result, rows, cols);
+    if (allocFailed)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "Allocate Failed!");
+        return NULL;
+    }
+    
+    sub_matrix(result, self->mat, other->mat);
+    // 把result转化为Matrix61c对象返回
+    Matrix61c *rv = (Matrix61c *)Matrix61c_new(&Matrix61cType, NULL, NULL);
+    rv->mat = result;
+    rv->shape = get_shape(rows, cols);
+    return (PyObject *)rv;
 }
 
 /*
@@ -303,6 +368,38 @@ PyObject *Matrix61c_sub(Matrix61c* self, PyObject* args) {
  */
 PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
     /* TODO: YOUR CODE HERE */
+    // 检查第二个矩阵是否为Matrix61c类型，不是的话抛出TypeError
+    if (!PyObject_IsInstance(args, (PyObject *)&Matrix61cType))
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+        return NULL;
+    }
+    // 通过类型检查，直接强转
+    Matrix61c *other = (Matrix61c *)args;
+    // 如果mat1->cols != mat2->rows，抛出ValueError
+    if (self->mat->cols != other->mat->rows)
+    {
+        PyErr_SetString(PyExc_ValueError, "A’s cols is not equal to B’s rows");
+        return NULL;
+    }
+    int rows = self->mat->rows;
+    int cols = self->mat->cols;
+    matrix *result = NULL;
+
+    // 申请内存失败就抛出错误
+    int allocFailed = allocate_matrix(&result, rows, cols);
+    if (allocFailed)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "Allocate Failed!");
+        return NULL;
+    }
+
+    mul_matrix(result, self->mat, other->mat);
+    // 把result转化为Matrix61c对象返回
+    Matrix61c *rv = (Matrix61c *)Matrix61c_new(&Matrix61cType, NULL, NULL);
+    rv->mat = result;
+    rv->shape = get_shape(rows, cols);
+    return (PyObject *)rv;
 }
 
 /*
@@ -310,6 +407,24 @@ PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
  */
 PyObject *Matrix61c_neg(Matrix61c* self) {
     /* TODO: YOUR CODE HERE */
+    int rows = self->mat->rows;
+    int cols = self->mat->cols;
+    matrix *result = NULL;
+
+    // 申请内存失败就抛出错误
+    int allocFailed = allocate_matrix(&result, rows, cols);
+    if (allocFailed)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "Allocate Failed!");
+        return NULL;
+    }
+
+    neg_matrix(result, self->mat);
+    // 把result转化为Matrix61c对象返回
+    Matrix61c *rv = (Matrix61c *)Matrix61c_new(&Matrix61cType, NULL, NULL);
+    rv->mat = result;
+    rv->shape = get_shape(rows, cols);
+    return (PyObject *)rv;
 }
 
 /*
@@ -317,6 +432,24 @@ PyObject *Matrix61c_neg(Matrix61c* self) {
  */
 PyObject *Matrix61c_abs(Matrix61c *self) {
     /* TODO: YOUR CODE HERE */
+    int rows = self->mat->rows;
+    int cols = self->mat->cols;
+    matrix *result = NULL;
+
+    // 申请内存失败就抛出错误
+    int allocFailed = allocate_matrix(&result, rows, cols);
+    if (allocFailed)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "Allocate Failed!");
+        return NULL;
+    }
+
+    abs_matrix(result, self->mat);
+    // 把result转化为Matrix61c对象返回
+    Matrix61c *rv = (Matrix61c *)Matrix61c_new(&Matrix61cType, NULL, NULL);
+    rv->mat = result;
+    rv->shape = get_shape(rows, cols);
+    return (PyObject *)rv;
 }
 
 /*
@@ -324,6 +457,24 @@ PyObject *Matrix61c_abs(Matrix61c *self) {
  */
 PyObject *Matrix61c_pow(Matrix61c *self, PyObject *pow, PyObject *optional) {
     /* TODO: YOUR CODE HERE */
+    int rows = self->mat->rows;
+    int cols = self->mat->cols;
+    matrix *result = NULL;
+
+    // 申请内存失败就抛出错误
+    int allocFailed = allocate_matrix(&result, rows, cols);
+    if (allocFailed)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "Allocate Failed!");
+        return NULL;
+    }
+
+    pow_matrix(result, self->mat, PyLong_AsLong(pow));
+    // 把result转化为Matrix61c对象返回
+    Matrix61c *rv = (Matrix61c *)Matrix61c_new(&Matrix61cType, NULL, NULL);
+    rv->mat = result;
+    rv->shape = get_shape(rows, cols);
+    return (PyObject *)rv;
 }
 
 /*
@@ -332,8 +483,13 @@ PyObject *Matrix61c_pow(Matrix61c *self, PyObject *pow, PyObject *optional) {
  */
 PyNumberMethods Matrix61c_as_number = {
     /* TODO: YOUR CODE HERE */
+    .nb_add = (binaryfunc)Matrix61c_add,
+    .nb_subtract = (binaryfunc)Matrix61c_sub,
+    .nb_multiply = (binaryfunc)Matrix61c_multiply,
+    .nb_negative = (binaryfunc)Matrix61c_neg,
+    .nb_absolute = (binaryfunc)Matrix61c_abs,
+    .nb_power = (ternaryfunc)Matrix61c_pow
 };
-
 
 /* INSTANCE METHODS */
 
@@ -343,6 +499,48 @@ PyNumberMethods Matrix61c_as_number = {
  */
 PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
+    PyObject* list;
+    // 把args提取为Python列表，大写O表示任意 Python 对象
+    if(!PyArg_ParseTuple(args, "O", &list)) {
+        return NULL;
+    }
+
+    //如果列表长度不为3，抛出TypeError
+    if(PyList_Size(list) != 3) {
+        PyErr_SetString(PyExc_TypeError, "the numbers of arguments must be 3!");
+    }
+
+    PyObject* pyRow = PyList_GetItem(list, 0);
+    PyObject* pyCol = PyList_GetItem(list, 1);
+    PyObject* pyVal = PyList_GetItem(list, 2);
+
+    //如果row和col不为整数，抛出TypeError
+    if (!PyLong_Check(pyRow) || !PyLong_Check(pyCol)) {
+        PyErr_SetString(PyExc_TypeError, "rows and cols must be int!");
+    }
+    int row = (int)PyLong_AsLong(pyRow);
+    int col = (int)PyLong_AsLong(pyCol);
+    if(row >= self->mat->rows || col >= self->mat->cols) {
+        PyErr_SetString(PyExc_IndexError, "i or j or both are out of range");
+    }
+
+    double val;
+    if (PyLong_Check(pyVal)) {
+        //如果val为int
+        val = (double)PyLong_AsLong(pyVal)
+    }
+    else if (PyFloat_Check(pyVal)) {
+        // 如果val为float
+        val = PyFloat_AsDouble(pyVal);
+    } else {
+        // 如果val不为int或float，抛出TypeError
+        PyErr_SetString(PyExc_TypeError, "val must be int or float!");
+    }
+    
+
+    matrix *result = self->mat;
+    set(result, row, col, val);
+    Py_RETURN_NONE;
 }
 
 /*
@@ -352,6 +550,7 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
  */
 PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
+   
 }
 
 /*
