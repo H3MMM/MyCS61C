@@ -501,7 +501,7 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
    int row, col;
    double val;
-   if (!PyArg_ParseTuple(args, "iid", &row, &col, &val) {
+   if (!PyArg_ParseTuple(args, "iid", &row, &col, &val)) {
         return NULL;
    }  //把args解包成row，col和val
    if(row < 0 || row >= self->mat->rows ||
@@ -521,7 +521,7 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
 PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
     int row, col;
-    if (!PyArg_ParseTuple(args, "ii", &row, &col) {
+    if (!PyArg_ParseTuple(args, "ii", &row, &col)) {
             return NULL;
     }  //把args解包成row，col和val
     if(row < 0 || row >= self->mat->rows ||
@@ -541,6 +541,8 @@ PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) {
  */
 PyMethodDef Matrix61c_methods[] = {
     /* TODO: YOUR CODE HERE */
+    {"set", (PyCFunction)Matrix61c_set_value, METH_VARARGS, "Set value at (row, col)"},
+    {"get", (PyCFunction)Matrix61c_get_value, METH_VARARGS, "Return value at (row, col)"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -551,6 +553,108 @@ PyMethodDef Matrix61c_methods[] = {
  */
 PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
     /* TODO: YOUR CODE HERE */
+    // [int,int],[slice,slice],[slice,int],[int,slice]情况
+    if (PyTuple_Check(key)) {
+      if (PyTuple_Size(key) != 2) {
+        PyErr_SetString(PyExc_TypeError, "Invalid key!");
+        return NULL;
+      }
+
+      PyObject *key0 = PyTuple_GetItem(key, 0);
+      PyObject *key1 = PyTuple_GetItem(key, 1);
+
+      int row_start, row_stop, row_step, row_len;
+      int col_start, col_stop, col_step, col_len;
+
+      // PySlice_GetIndicesEx函数：
+      // 输入要解析的对象key，对象长度
+      // 输出start,stop,step和slicelength
+      if (PySlice_Check(key0)) {
+        PySlice_GetIndicesEx(key0, self->mat->rows * self->mat->cols, &row_start, &row_stop,
+                             &row_step, &row_len);
+
+        if (row_step != 1 || row_len < 1) {
+          PyErr_SetString(PyExc_ValueError, "Slice info not valid!");
+          return NULL;
+        }
+      }
+
+      else if (PyLong_Check(key0)) {
+        row_start = PyLong_AsLong(key0);
+        if (row_start < 0 || row_start >= self->mat->rows) {
+          PyErr_SetString(PyExc_IndexError, "Index out of range");
+          return NULL;
+        }
+        row_len = 1;
+      }
+
+      else {
+        PyErr_SetString(PyExc_TypeError, "Invalid key!");
+        return NULL;
+      }
+
+      // col 同理
+      if (PySlice_Check(key1)) {
+        PySlice_GetIndicesEx(key1, self->mat->rows * self->mat->cols, &col_start, &col_stop,
+                             &col_step, &col_len);
+
+        if (col_step != 1 || col_len < 1) {
+          PyErr_SetString(PyExc_ValueError, "Slice info not valid!");
+          return NULL;
+        }
+      }
+
+      else if (PyLong_Check(key1)) {
+        col_start = PyLong_AsLong(key1);
+        if (col_start < 0 || col_start >= self->mat->cols) {
+          PyErr_SetString(PyExc_IndexError, "Index out of range");
+          return NULL;
+        }
+        col_len = 1;
+      }
+      else {
+        PyErr_SetString(PyExc_TypeError, "Invalid key!");
+        return NULL;
+      }
+
+      if (row_len == 1 && col_len == 1) {
+        double val = get(self->mat, row_start, col_start);
+        return PyFloat_FromDouble(val);
+      }
+      matrix *new_mat = NULL;
+
+      if (allocate_matrix_ref(&new_mat, self->mat, row_start, col_start,
+                              row_len, col_len) != 0) {
+        PyErr_SetString(PyExc_RuntimeError, "Allocation failed!");
+        return NULL;
+      }
+      Matrix61c *rv = (Matrix61c *)Matrix61c_new(&Matrix61cType, NULL, NULL);
+
+      rv->mat = new_mat;
+      rv->shape = get_shape(row_len, col_len);
+     
+      return (PyObject *)rv;
+    }
+    else if(PySlice_Check(key)) {
+      int start, stop, step, len;
+      PySlice_GetIndicesEx(key, self->mat->rows, &start, &stop,
+                           &step, &len);
+
+      if (step != 1 || len < 1) {
+        PyErr_SetString(PyExc_ValueError, "Slice info not valid!");
+        return NULL;
+      }
+    }
+    else if(PyLong_Check(key)) {
+      int start = PyLong_AsLong(key);
+      if (start < 0 || start >= self->mat->rows) {
+        PyErr_SetString(PyExc_IndexError, "Index out of range");
+        return NULL;
+      }
+    }
+    else {
+      PyErr_SetString(PyExc_TypeError, "Invalid key!");
+    }
 }
 
 /*
@@ -558,6 +662,7 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
  */
 int Matrix61c_set_subscript(Matrix61c* self, PyObject *key, PyObject *v) {
     /* TODO: YOUR CODE HERE */
+
 }
 
 PyMappingMethods Matrix61c_mapping = {

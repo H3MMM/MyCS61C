@@ -9,6 +9,7 @@ install:
 	rm -rf build
 	xargs rm -rf < files.txt
 	python3 setup.py install --record files.txt
+	python3 setup_dumbpy.py install --record files.txt
 
 uninstall:
 	if [ ! -f files.txt ]; then touch files.txt; fi
